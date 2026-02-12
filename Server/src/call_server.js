@@ -24,21 +24,37 @@ export function registerCallRoutes(app) {
     });
 
     // Add this in registerCallRoutes
-    app.get("/exoml/start-voice", (req, res) => {
-        const streamUrl = `wss://${process.env.PUBLIC_BASE_URL.replace('https://', '')}/ws/exotel`;
+    app.all("/exoml/start-voice", (req, res) => {
+        console.log("🟢 [ExoML] /exoml/start-voice HIT");
 
-        // Yaha hum <Stream> tag use kar rahe hain audio fork karne ke liye
+        // NGrok URL ko protocol-neutral banayein
+        let baseUrl = process.env.WS_PUBLIC_URL.replace(/\/$/, "");
+
+        // Protocol logic: Agar https hai toh wss banayein, warna ws
+        let wsUrl = baseUrl.startsWith('https')
+            ? baseUrl.replace('https://', 'wss://')
+            : baseUrl.replace('http://', 'ws://');
+
+        // Final Stream URL setup
+        const streamUrl = `${wsUrl}/ws/exotel`;
+
+        console.log("🟢 [ExoML] Using Stream URL:", streamUrl);
+
+        // Zaroori: <Say> tag ko thoda lamba rakhein taaki handshake complete ho jaye
         const response = `<?xml version="1.0" encoding="UTF-8"?>
-    <Response>
-        <Start>
-            <Stream url="${streamUrl}" />
-        </Start>
-        <Say>Please wait while we connect you to our AI assistant.</Say>
-        </Response>`;
+<Response>
+    <Start>
+        <Stream url="${streamUrl}" />
+    </Start>
+    <Say voice="alice">Connecting to Sureko AI. Please stay on the line.</Say>
+    <Pause length="3"/>
+</Response>`;
 
         res.set("Content-Type", "text/xml");
         res.send(response);
+        console.log("✅ [ExoML] Response sent successfully");
     });
+
 
     app.post("/exotel/status", express.urlencoded({ extended: false }), (req, res) => {
         console.log("📞 Exotel StatusCallback:", req.body);

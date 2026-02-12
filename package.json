@@ -1,9 +1,9 @@
 {
   "type": "module",
   "scripts": {
-    "start": "node server.js",
     "build": "echo \"no build step\"",
-    "dev": "nodemon server.js"
+    "start": "node Server/src/server.js",
+    "dev": "nodemon Server/src/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
