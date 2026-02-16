@@ -111,6 +111,9 @@ export function registerExotelWsBridge(httpServer) {
         let closed = false;
         let seq = 1;
 
+        let exoTxBuffer = Buffer.alloc(0);
+        const EXO_FRAME_BYTES = 3200; // 100ms @ 8k, PCM16 mono (Exotel min)
+
         // perf counters
         let exoInChunks = 0;
         let agentInChunks = 0;
@@ -167,6 +170,34 @@ export function registerExotelWsBridge(httpServer) {
                 }
             }
         };
+
+        function flushToExotelFramed(pcmBuf) {
+            if (closed || !streamSid) return;
+
+            // append to buffer
+            exoTxBuffer = Buffer.concat([exoTxBuffer, pcmBuf]);
+
+            // send only fixed frames (multiple of 320, >=3200)
+            while (exoTxBuffer.length >= EXO_FRAME_BYTES) {
+                const frame = exoTxBuffer.subarray(0, EXO_FRAME_BYTES);
+                exoTxBuffer = exoTxBuffer.subarray(EXO_FRAME_BYTES);
+
+                const out = {
+                    event: "media",
+                    sequence_number: seq++,
+                    stream_sid: streamSid,
+                    media: { payload: bufToB64(frame) },
+                };
+
+                try {
+                    exoWs.send(JSON.stringify(out));
+                } catch (e) {
+                    log(requestId, "error", "Failed sending framed audio to Exotel", { err: e?.message });
+                    return;
+                }
+            }
+        }
+
 
         const sendToExotelPCM = (pcmBuf) => {
             if (closed || !streamSid) {
@@ -308,7 +339,7 @@ export function registerExotelWsBridge(httpServer) {
                     streamSid,
                 });
 
-                sendToExotelPCM(outBuf);
+                flushToExotelFramed(outBuf);
             }
 
             if (j?.type === "conversation_finished") {
@@ -373,6 +404,9 @@ export function registerExotelWsBridge(httpServer) {
         let packetsToSkip = 100; // 100 packets ≈ 2 seconds (20ms per packet)
 
         exoWs.on("message", (raw) => {
+            exoInChunks++;
+            exoInBytes += raw?.length ?? 0;
+
             let msg;
             try { msg = JSON.parse(raw.toString()); } catch { return; }
 
