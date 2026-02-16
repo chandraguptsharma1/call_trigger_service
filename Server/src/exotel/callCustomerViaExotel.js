@@ -87,40 +87,81 @@ import querystring from "querystring";
 // src/exotel/callCustomerViaExotel.js
 // src/exotel/callCustomerViaExotel.js
 // src/exotel/callCustomerViaExotel.js
+// export async function callCustomerViaExotel(customerNumber) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,
+//         EXOTEL_APP_ID
+//     } = process.env;
+
+//     // v1 API Endpoint (Mumbai Stamp)
+//     const endpoint = `https://api.in.exotel.com/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+
+//     // Documentation ke mutabik 'Url' parameter hi flow connect karta hai
+//     const body = new URLSearchParams({
+//         From: customerNumber,               // Kise call karni hai
+//         CallerId: EXOTEL_CALLER_ID,         // Aapka ExoPhone
+//         // Ye URL pick-up karte hi aapke Passthru flow ko trigger karega
+//         Url: `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`,
+//         CallType: "trans"
+//     });
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             "Authorization": `Basic ${auth}`,
+//             "Content-Type": "application/x-www-form-urlencoded" // v1 form-data mangta hai
+//         },
+//         body: body.toString(),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel v1] Response:", text);
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
 export async function callCustomerViaExotel(customerNumber) {
     const {
         EXOTEL_SID,
         EXOTEL_API_KEY,
         EXOTEL_API_TOKEN,
         EXOTEL_CALLER_ID,
-        EXOTEL_APP_ID
+        EXOTEL_APP_ID,
     } = process.env;
 
-    // v1 API Endpoint (Mumbai Stamp)
     const endpoint = `https://api.in.exotel.com/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
 
-    // Documentation ke mutabik 'Url' parameter hi flow connect karta hai
+    // ✅ Exotel App/Flow URL (this will play greeting configured in Flow)
+    const exomlAppUrl = `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`;
+
     const body = new URLSearchParams({
-        From: customerNumber,               // Kise call karni hai
-        CallerId: EXOTEL_CALLER_ID,         // Aapka ExoPhone
-        // Ye URL pick-up karte hi aapke Passthru flow ko trigger karega
-        Url: `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`,
-        CallType: "trans"
+        From: customerNumber,        // customer number
+        CallerId: EXOTEL_CALLER_ID,  // your ExoPhone
+        Url: exomlAppUrl,            // ✅ your Exotel Flow/App
+        // StatusCallback: `${process.env.PUBLIC_BASE_URL}/exotel/status`, // optional
     });
 
     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
 
+    console.log("➡️ [Exotel] Calling:", { endpoint, From: customerNumber, CallerId: EXOTEL_CALLER_ID, Url: exomlAppUrl });
+
     const res = await fetch(endpoint, {
         method: "POST",
         headers: {
-            "Authorization": `Basic ${auth}`,
-            "Content-Type": "application/x-www-form-urlencoded" // v1 form-data mangta hai
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
         },
         body: body.toString(),
     });
 
     const text = await res.text();
-    console.log("📡 [Exotel v1] Response:", text);
+    console.log("📡 [Exotel] Response:", res.status, text);
+
     if (!res.ok) throw new Error(text);
     return text;
 }
