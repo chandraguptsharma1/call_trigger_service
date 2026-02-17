@@ -1,10 +1,16 @@
-import { callCustomerViaExotel } from "./exotel/callCustomerViaExotel.js";
 import express from "express";
+import { callCustomerViaExotel } from "./exotel/callCustomerViaExotel.js";
 
 export function registerCallRoutes(app) {
+    // Needed to parse Exotel callbacks (form-encoded)
+    app.use(express.urlencoded({ extended: false }));
+
+    // ✅ Start outbound call
     app.post("/start-call", async (req, res) => {
         try {
             const { mobileNumber, agentName, customerName, amount, dueDate } = req.body;
+
+            console.log("request body==> ", req.body)
 
             if (!mobileNumber) {
                 return res.status(400).json({ ok: false, message: "mobileNumber required" });
@@ -15,6 +21,8 @@ export function registerCallRoutes(app) {
                 customer_name: customerName || "Customer",
                 amount: amount || "",
                 due_date: dueDate || "",
+                // optional: force exotel sample rate
+                sample_rate: 16000,
             });
 
             return res.json({ ok: true, result });
@@ -23,48 +31,59 @@ export function registerCallRoutes(app) {
         }
     });
 
-    // Add this in registerCallRoutes
-    app.all("/exoml/start-voice", (req, res) => {
-        console.log("🟢 [ExoML] /exoml/start-voice HIT");
+    /**
+     * ✅ ExoML endpoint that Exotel hits (Url=...)
+     * This should return XML
+     */
+    app.get("/exoml/start-voice", (req, res) => {
+        const WS_PUBLIC_URL = (process.env.WS_PUBLIC_URL || "").replace(/\/$/, "");
+        const wsBase = WS_PUBLIC_URL.startsWith("https://")
+            ? WS_PUBLIC_URL.replace("https://", "wss://")
+            : WS_PUBLIC_URL.replace("http://", "ws://");
 
-        // NGrok URL ko protocol-neutral banayein
-        let baseUrl = process.env.WS_PUBLIC_URL.replace(/\/$/, "");
+        // ✅ don’t allow unicode here (safe fallback)
+        const due_date = String(req.query.due_date || "2026-02-20").replace(/[^\x20-\x7E]/g, "");
 
-        // Protocol logic: Agar https hai toh wss banayein, warna ws
-        let wsUrl = baseUrl.startsWith('https')
-            ? baseUrl.replace('https://', 'wss://')
-            : baseUrl.replace('http://', 'ws://');
+        const qs = new URLSearchParams({
+            "sample-rate": String(req.query.sample_rate || "16000"),
+            agent_name: String(req.query.agent_name || "Ritu"),
+            customer_name: String(req.query.customer_name || "Ram"),
+            amount: String(req.query.amount || "15000"),
+            due_date,
+        });
 
-        // Final Stream URL setup
-        const streamUrl = `${wsUrl}/ws/exotel`;
+        const streamUrl = `${wsBase}/ws/exotel?${qs.toString()}`;
 
-        console.log("🟢 [ExoML] Using Stream URL:", streamUrl);
-
-        // Zaroori: <Say> tag ko thoda lamba rakhein taaki handshake complete ho jaye
-        const response = `<?xml version="1.0" encoding="UTF-8"?>
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Start>
-        <Stream url="${streamUrl}" />
-    </Start>
-    <Say voice="alice">Connecting to Sureko AI. Please stay on the line.</Say>
-    <Pause length="3"/>
+  <Say voice="alice">Connecting to Sureko AI. Please stay on the line.</Say>
+  <Pause length="1"/>
+  <Start><Stream url="${streamUrl}" /></Start>
+  <Pause length="600"/>
 </Response>`;
 
         res.set("Content-Type", "text/xml");
-        res.send(response);
-        console.log("✅ [ExoML] Response sent successfully");
+        res.send(xml);
     });
 
 
-    app.post("/exotel/status", express.urlencoded({ extended: false }), (req, res) => {
-        console.log("📞 Exotel StatusCallback:", req.body);
-        res.send("OK");
-    });
-
-    // ✅ safety for double slash hits
-    app.post("//exotel/status", express.urlencoded({ extended: false }), (req, res) => {
-        console.log("📞 Exotel StatusCallback(//):", req.body);
+    // ✅ Exotel status callback
+    app.post("/exotel/status", (req, res) => {
+        console.log("📞 Exotel StatusCallback:", {
+            CallSid: req.body.CallSid,
+            CallStatus: req.body.CallStatus,
+            From: req.body.From,
+            To: req.body.To,
+            DialCallStatus: req.body.DialCallStatus,
+            Duration: req.body.Duration,
+            RecordingUrl: req.body.RecordingUrl,
+        });
         res.status(200).send("OK");
     });
 
+    // Safety for double slash
+    app.post("//exotel/status", (req, res) => {
+        console.log("📞 Exotel StatusCallback(//):", req.body);
+        res.status(200).send("OK");
+    });
 }

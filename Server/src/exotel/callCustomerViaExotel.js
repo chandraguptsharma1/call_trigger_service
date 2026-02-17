@@ -125,36 +125,246 @@ import querystring from "querystring";
 //     return text;
 // }
 
-export async function callCustomerViaExotel(customerNumber) {
+// export async function callCustomerViaExotel(customerNumber) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,
+//         EXOTEL_APP_ID,
+//     } = process.env;
+
+//     const endpoint = `https://api.in.exotel.com/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+
+//     // ✅ Exotel App/Flow URL (this will play greeting configured in Flow)
+//     const exomlAppUrl = `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`;
+
+//     const body = new URLSearchParams({
+//         From: customerNumber,        // customer number
+//         CallerId: EXOTEL_CALLER_ID,  // your ExoPhone
+//         Url: exomlAppUrl,            // ✅ your Exotel Flow/App
+//         // StatusCallback: `${process.env.PUBLIC_BASE_URL}/exotel/status`, // optional
+//     });
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     console.log("➡️ [Exotel] Calling:", { endpoint, From: customerNumber, CallerId: EXOTEL_CALLER_ID, Url: exomlAppUrl });
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             Authorization: `Basic ${auth}`,
+//             "Content-Type": "application/x-www-form-urlencoded",
+//         },
+//         body: body.toString(),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel] Response:", res.status, text);
+
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
+// export async function callCustomerViaExotel(customerNumber) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,
+//         EXOTEL_APP_ID,
+//     } = process.env;
+
+//     const endpoint = `https://api.in.exotel.com/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+
+//     // ✅ Exotel App/Flow URL
+//     const exomlAppUrl = `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`;
+
+//     // ✅ Add StatusCallback to track call events
+//     const statusCallback = `${process.env.PUBLIC_BASE_URL}/exotel/status`;
+
+//     const body = new URLSearchParams({
+//         From: customerNumber,
+//         CallerId: EXOTEL_CALLER_ID,
+//         Url: exomlAppUrl,
+
+//         CallType: "trans",  // 🔥 VERY IMPORTANT
+//         StatusCallback: statusCallback,  // Add this
+//         StatusCallbackEvent: "answered,completed",  // Track specific events
+//     });
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     console.log("➡️ [Exotel] Calling:", {
+//         endpoint,
+//         From: customerNumber,
+//         CallerId: EXOTEL_CALLER_ID,
+//         Url: exomlAppUrl,
+//         StatusCallback: statusCallback
+//     });
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             Authorization: `Basic ${auth}`,
+//             "Content-Type": "application/x-www-form-urlencoded",
+//         },
+//         body: body.toString(),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel] Response:", res.status, text);
+
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
+// export async function callCustomerViaExotel(customerNumber) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,
+//         EXOTEL_APP_ID,
+//         EXOTEL_HOST,
+//         PUBLIC_BASE_URL,
+//     } = process.env;
+
+//     const endpoint = `https://${EXOTEL_HOST}/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+
+//     // Exotel Flow / AppId
+//     const exomlAppUrl = `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`;
+
+//     const body = new URLSearchParams({
+//         From: customerNumber,        // customer to call
+//         CallerId: EXOTEL_CALLER_ID,  // your ExoPhone
+//         Url: exomlAppUrl,
+//         StatusCallback: `${PUBLIC_BASE_URL}/exotel/status`,
+//         CallType: "trans",
+//     });
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     console.log("➡️ [Exotel] Calling:", {
+//         endpoint,
+//         From: customerNumber,
+//         CallerId: EXOTEL_CALLER_ID,
+//         Url: exomlAppUrl,
+//         StatusCallback: `${PUBLIC_BASE_URL}/exotel/status`,
+//     });
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             Authorization: `Basic ${auth}`,
+//             "Content-Type": "application/x-www-form-urlencoded",
+//         },
+//         body: body.toString(),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel] Response:", res.status, text);
+
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
+
+// export async function callCustomerViaExotel(customerNumber, params = {}) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,
+//         EXOTEL_HOST,
+//         PUBLIC_BASE_URL,
+//     } = process.env;
+
+//     const endpoint = `https://${EXOTEL_HOST}/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+
+//     // ✅ Exotel must fetch this URL to get ExoML
+//     const qs = new URLSearchParams({
+//         agent_name: params.agent_name || "Ritu",
+//         customer_name: params.customer_name || "Customer",
+//         amount: params.amount || "",
+//         due_date: params.due_date || "",
+//         sample_rate: String(params.sample_rate || 16000),
+//     });
+
+//     const exomlUrl = `${PUBLIC_BASE_URL.replace(/\/$/, "")}/exoml/start-voice?${qs.toString()}`;
+
+//     const body = new URLSearchParams({
+//         From: customerNumber,
+//         CallerId: EXOTEL_CALLER_ID,
+//         Url: exomlUrl,
+//         StatusCallback: `${PUBLIC_BASE_URL.replace(/\/$/, "")}/exotel/status`,
+//         CallType: "trans",
+//     });
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     console.log("➡️ [Exotel] Calling:", {
+//         endpoint,
+//         From: customerNumber,
+//         CallerId: EXOTEL_CALLER_ID,
+//         Url: exomlUrl,
+//     });
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             Authorization: `Basic ${auth}`,
+//             "Content-Type": "application/x-www-form-urlencoded",
+//         },
+//         body: body.toString(),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel] Response:", res.status, text);
+
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
+export async function callCustomerViaExotel(customerNumber, params = {}) {
     const {
         EXOTEL_SID,
         EXOTEL_API_KEY,
         EXOTEL_API_TOKEN,
         EXOTEL_CALLER_ID,
         EXOTEL_APP_ID,
+        EXOTEL_HOST
     } = process.env;
 
-    const endpoint = `https://api.in.exotel.com/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
+    // 1. Clean URL (NO credentials embedded here)
+    const endpoint = `https://${EXOTEL_HOST}/v1/Accounts/${EXOTEL_SID}/Calls/connect.json`;
 
-    // ✅ Exotel App/Flow URL (this will play greeting configured in Flow)
+    const from = String(customerNumber).replace(/\D/g, "");
+
+    // 2. Standard Exotel App URL [cite: 30]
     const exomlAppUrl = `http://my.exotel.com/${EXOTEL_SID}/exoml/start_voice/${EXOTEL_APP_ID}`;
 
     const body = new URLSearchParams({
-        From: customerNumber,        // customer number
-        CallerId: EXOTEL_CALLER_ID,  // your ExoPhone
-        Url: exomlAppUrl,            // ✅ your Exotel Flow/App
-        // StatusCallback: `${process.env.PUBLIC_BASE_URL}/exotel/status`, // optional
+        From: from,
+        CallerId: EXOTEL_CALLER_ID,
+        Url: exomlAppUrl,
+        CallType: "trans",
+        // ✅ add these
+        TimeLimit: String(params.timeLimit ?? 600), // e.g. 10 minutes (max 14400)
+        TimeOut: String(params.timeOut ?? 45),      // ring time in seconds
+        // Use CustomField for your metadata to keep the URL clean
+
     });
 
+    // 3. Create the Base64 Auth string
     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
-
-    console.log("➡️ [Exotel] Calling:", { endpoint, From: customerNumber, CallerId: EXOTEL_CALLER_ID, Url: exomlAppUrl });
 
     const res = await fetch(endpoint, {
         method: "POST",
         headers: {
-            Authorization: `Basic ${auth}`,
-            "Content-Type": "application/x-www-form-urlencoded",
+            // Move credentials here
+            "Authorization": `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded"
         },
         body: body.toString(),
     });
@@ -165,3 +375,51 @@ export async function callCustomerViaExotel(customerNumber) {
     if (!res.ok) throw new Error(text);
     return text;
 }
+
+// export async function callCustomerViaExotel(customerNumber, params = {}) {
+//     const {
+//         EXOTEL_SID,
+//         EXOTEL_API_KEY,
+//         EXOTEL_API_TOKEN,
+//         EXOTEL_CALLER_ID,   // e.g. +912247790345 or 02247790345 (as per your account)
+//         EXOTEL_AGENT_URI,        // e.g. +91XXXXXXXXXX (must be an Exotel "user"/coworker contact_uri) OR SIP URI
+//         PUBLIC_BASE_URL,
+//     } = process.env;
+
+//     const endpoint = `https://ccm-api.in.exotel.com/v2/accounts/${EXOTEL_SID}/calls`;
+
+//     const body = {
+//         from: { user_contact_uri: EXOTEL_AGENT_URI },                // Leg1 (agent/user)
+//         to: { customer_contact_uri: customerNumber },                // Leg2 (customer)  ✅ must be +91...
+//         virtual_number: EXOTEL_CALLER_ID,                       // your exophone
+//         max_time_limit: String(params.timeLimit ?? 600),
+//         attempt_time_out: String(params.timeOut ?? 45),
+
+//         custom_field: `name:${params.customer_name || "Ram"}`,
+//         status_callback: [
+//             { event: "answered", url: `${PUBLIC_BASE_URL}/exotel/ccm-status` },
+//             { event: "terminal", url: `${PUBLIC_BASE_URL}/exotel/ccm-status` },
+//         ],
+//     };
+
+//     const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+
+//     const res = await fetch(endpoint, {
+//         method: "POST",
+//         headers: {
+//             Authorization: `Basic ${auth}`,
+//             "content-type": "application/json",
+//         },
+//         body: JSON.stringify(body),
+//     });
+
+//     const text = await res.text();
+//     console.log("📡 [Exotel CCM] Response:", res.status, text);
+//     if (!res.ok) throw new Error(text);
+//     return text;
+// }
+
+
+
+
+
