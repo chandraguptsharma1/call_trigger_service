@@ -57,7 +57,7 @@ export function registerCallRoutes(app) {
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="alice">Connecting to Sureko AI. Please stay on the line.</Say>
-  <Pause length="1"/>
+  <Pause length="600"/>
   <Start><Stream url="${streamUrl}" /></Start>
   <Pause length="600"/>
 </Response>`;
