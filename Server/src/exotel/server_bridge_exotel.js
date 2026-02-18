@@ -317,7 +317,15 @@ export function registerExotelWsBridge(httpServer) {
             }
 
             if (msg.event === "stop") {
-                log(requestId, "info", "⏹️ Exotel stop", { streamSid, stop: msg.stop || msg });
+                const callSid = msg?.stop?.call_sid;
+                log(requestId, "info", "⏹️ Exotel stop", { streamSid, stop: msg.stop });
+
+                if (callSid) {
+                    fetchV1CallDetails(callSid)
+                        .then((d) => log(requestId, "info", "📞 V1 Call Details", d))
+                        .catch((e) => log(requestId, "error", "📞 Call details fetch failed", { err: e?.message }));
+                }
+
                 finalize("exotel-stop");
             }
         });
@@ -352,6 +360,16 @@ export function registerExotelWsBridge(httpServer) {
             EXO_FRAME_BYTES,
         });
     });
+
+    async function fetchV1CallDetails(callSid) {
+        const { EXOTEL_SID, EXOTEL_API_KEY, EXOTEL_API_TOKEN, EXOTEL_HOST } = process.env;
+        const url = `https://${EXOTEL_HOST}/v1/Accounts/${EXOTEL_SID}/Calls/${callSid}.json`;
+        const auth = Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64");
+        const res = await fetch(url, { headers: { Authorization: `Basic ${auth}` } });
+        const text = await res.text();
+        return { status: res.status, text };
+    }
+
 
     console.log("✅ Exotel WS bridge registered on /ws/exotel");
 }
